@@ -111,7 +111,7 @@ def chat(pregunta: Pregunta):
             messages=mensajes,
             temperature=0.2
         )
-        contenido = respuesta.choices[0].message.content
+        contenido = respuesta.choices[0].message.content or respuesta.choices[0].message.reasoning_content or "Sin respuesta"
 
     except Exception as e:
         estado["historial"].pop()  # Revertir si falla
