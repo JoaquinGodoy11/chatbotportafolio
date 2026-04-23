@@ -1,43 +1,52 @@
-# 🤖 AI Chatbot con RAG
+# Mike — AI Chatbot con RAG
 
-Chatbot inteligente que responde preguntas sobre documentos propios usando IA. Construido con FastAPI y Groq.
+ **Demo en vivo:** [chatbotportafolio-production.up.railway.app](https://chatbotportafolio-production.up.railway.app)
 
-## 🛠️ Stack
-- **Backend:** Python, FastAPI
-- **IA:** Groq API (LLaMA 3.3 70B)
+---
+
+Construí este proyecto para demostrar cómo integrar un LLM con documentos propios de forma segura y deployarlo en producción. La idea es simple: subís cualquier PDF o TXT y el chatbot responde preguntas sobre ese documento. Sin inventar, sin salirse del contexto.
+
+## ¿Qué tiene adentro?
+
+El backend corre en FastAPI y se comunica con la API de Groq para inferencia. Implementé RAG básico manteniendo el documento cargado en el contexto del modelo junto con el historial de conversación. Cada usuario tiene su propia sesión.
+
+En el lado de seguridad, hicimos unas configuraciones iniciales como: rate limiting por IP, CORS configurado para el dominio de producción, sanitización de inputs en backend y frontend para prevenir XSS, y validación de modelos contra una whitelist.
+
+## Stack
+
+- **Backend:** Python, FastAPI, Groq API (LLaMA 3.3 70B)
 - **Frontend:** HTML, CSS, JavaScript vanilla
-- **RAG:** Procesamiento de PDF y TXT con pdfplumber
+- **Deploy:** Railway
+- **Librerías:** pdfplumber, slowapi, python-dotenv
 
-## ⚙️ Instalación
+## Instalación local
 
-1. Cloná el repositorio
-2. Creá el entorno virtual:
 ```bash
-   python -m venv venv
-   venv\Scripts\activate  # Windows
+git clone https://github.com/JoaquinGodoy11/chatbotportafolio
+cd chatbotportafolio
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
 ```
-3. Instalá dependencias:
-```bash
-   pip install -r requirements.txt
-```
-4. Creá un archivo `.env`: 
+
+Creá un archivo `.env`:
 GROQ_API_KEY=tu_api_key_aqui
-
-5. Corré el servidor:
+Corré el servidor:
 ```bash
-   uvicorn main:app --reload
+uvicorn main:app --reload
 ```
-6. Abrí `http://localhost:8000`
 
-## ✨ Features
-- Subida de archivos PDF y TXT
-- Respuestas basadas exclusivamente en el documento cargado
-- Memoria de conversación dentro de la sesión
+Abrí `http://localhost:8000`
+
+## Features
+
+- Subida de archivos PDF y TXT (máx 5MB)
+- Selección de modelo (LLaMA 70B o 8B)
+- Memoria de conversación por sesión
 - Protección contra prompt injection
-- Reset de conversación
-- Animación de tipeo y timestamps en mensajes
+- Export del chat a TXT
+- Reset de sesión
 
-## 🔒 Seguridad
-- API key protegida con variables de entorno
-- Archivos sensibles excluidos con `.gitignore`
-- System prompt reforzado contra manipulación
+---
+
+Hecho por [Joaquín Godoy](https://github.com/JoaquinGodoy11)
