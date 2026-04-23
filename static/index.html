@@ -22,7 +22,6 @@
         }
         /* <!-- END: VARIABLES --> */
 
-        /* <!-- SECTION: RESET --> */
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
@@ -41,12 +40,11 @@
             content: '';
             position: fixed;
             inset: 0;
-            background: 
+            background:
                 radial-gradient(ellipse at 20% 50%, rgba(59,130,246,0.04) 0%, transparent 60%),
                 radial-gradient(ellipse at 80% 20%, rgba(59,130,246,0.03) 0%, transparent 50%);
             pointer-events: none;
         }
-        /* <!-- END: RESET --> */
 
         /* <!-- SECTION: LAYOUT --> */
         .terminal {
@@ -80,10 +78,7 @@
             gap: 12px;
         }
 
-        .dots {
-            display: flex;
-            gap: 6px;
-        }
+        .dots { display: flex; gap: 6px; }
 
         .dot {
             width: 10px;
@@ -98,9 +93,7 @@
             color: var(--text-dim);
         }
 
-        .prompt span {
-            color: var(--blue);
-        }
+        .prompt span { color: var(--blue); }
 
         .status {
             font-family: var(--mono);
@@ -148,10 +141,7 @@
             background: var(--blue-glow);
         }
 
-        .upload-label:hover {
-            background: rgba(59,130,246,0.25);
-            border-color: var(--blue);
-        }
+        .upload-label:hover { background: rgba(59,130,246,0.25); border-color: var(--blue); }
 
         input[type="file"] { display: none; }
 
@@ -168,11 +158,7 @@
             transition: border-color 0.2s;
         }
 
-        .select-model:hover, .select-model:focus {
-            border-color: var(--blue);
-            color: var(--text);
-        }
-
+        .select-model:hover, .select-model:focus { border-color: var(--blue); color: var(--text); }
         .select-model option { background: var(--bg); }
 
         .upload-status {
@@ -197,10 +183,7 @@
             transition: all 0.2s;
         }
 
-        .btn-toolbar:hover {
-            color: var(--text);
-            border-color: var(--text-dim);
-        }
+        .btn-toolbar:hover { color: var(--text); border-color: var(--text-dim); }
         /* <!-- END: TOOLBAR --> */
 
         /* <!-- SECTION: MESSAGES --> */
@@ -219,12 +202,7 @@
         .messages::-webkit-scrollbar-track { background: transparent; }
         .messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
-        .msg-row {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
+        .msg-row { display: flex; flex-direction: column; gap: 4px; }
         .msg-row.user { align-items: flex-end; }
         .msg-row.bot { align-items: flex-start; }
 
@@ -336,9 +314,7 @@
             caret-color: var(--blue);
         }
 
-        input[type="text"]::placeholder {
-            color: var(--text-muted);
-        }
+        input[type="text"]::placeholder { color: var(--text-muted); }
 
         .btn-send {
             font-family: var(--mono);
@@ -361,7 +337,6 @@
 <body>
     <div class="terminal">
 
-        <!-- HEADER -->
         <div class="header">
             <div class="header-left">
                 <div class="dots">
@@ -379,7 +354,6 @@
             </div>
         </div>
 
-        <!-- TOOLBAR -->
         <div class="toolbar">
             <label class="upload-label" for="fileInput">+ upload</label>
             <input type="file" id="fileInput" accept=".pdf,.txt" onchange="subirArchivo(this)"/>
@@ -387,7 +361,6 @@
             <select class="select-model" id="modelSelect">
                 <option value="llama-3.3-70b-versatile">llama-3.3-70b</option>
                 <option value="llama-3.1-8b-instant">llama-3.1-8b (rápido)</option>
-                <option value="deepseek-r1-distill-llama-70b">deepseek-r1-70b</option>
             </select>
 
             <span class="upload-status" id="uploadStatus"></span>
@@ -396,18 +369,8 @@
             <button class="btn-toolbar" onclick="resetChat()">reset</button>
         </div>
 
-        <!-- MESSAGES -->
-        <div class="messages" id="messages">
-            <div class="msg-row bot">
-                <div class="msg-label">system · <span id="tsInicial"></span></div>
-                <div class="message bot">
-                    Iniciando chatbot... listo.<br>
-                    Subí un PDF o TXT para comenzar, o preguntame sobre el perfil por defecto.
-                </div>
-            </div>
-        </div>
+        <div class="messages" id="messages"></div>
 
-        <!-- INPUT -->
         <div class="input-area">
             <span class="input-prefix">$</span>
             <input type="text" id="input" placeholder="escribí tu consulta..." onkeypress="handleKey(event)"/>
@@ -417,13 +380,27 @@
     </div>
 
     <script>
-        // <!-- SECTION: INIT -->
-        document.getElementById('tsInicial').textContent = horaActual();
+        // <!-- SECTION: SESSION -->
+        let sessionId = localStorage.getItem('session_id') || '';
 
         function horaActual() {
             return new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
         }
+        // <!-- END: SESSION -->
+
+        // <!-- SECTION: INIT -->
+        window.onload = () => {
+            agregarMensajeBot(`Hola, soy Mike, el chatbot de Joaquín.<br>Estoy aquí para formar parte de su portfolio.<br>Podés preguntarme lo que quieras sobre él, o subir un archivo y consultarme lo que quieras de él.`);
+        };
         // <!-- END: INIT -->
+
+        // <!-- SECTION: SANITIZE -->
+        function sanitizarHTML(texto) {
+            const div = document.createElement('div');
+            div.appendChild(document.createTextNode(texto));
+            return div.innerHTML;
+        }
+        // <!-- END: SANITIZE -->
 
         // <!-- SECTION: UPLOAD -->
         async function subirArchivo(input) {
@@ -435,34 +412,40 @@
 
             const formData = new FormData();
             formData.append('file', file);
+            if (sessionId) formData.append('session_id', sessionId);
 
             try {
                 const res = await fetch('/upload', { method: 'POST', body: formData });
                 const data = await res.json();
 
-                if (data.error) {
-                    status.textContent = `err: ${data.error}`;
-                } else {
-                    status.textContent = `${data.caracteres.toLocaleString()} chars · ${data.paginas ?? '–'} pgs`;
-                    document.getElementById('archivoActivo').textContent = data.archivo;
-                    agregarMensajeBot(`archivo cargado: ${data.archivo}`);
+                if (!res.ok) {
+                    status.textContent = `err: ${data.detail}`;
+                    return;
                 }
-            } catch {
-                status.textContent = 'err: conexión fallida';
+
+                sessionId = data.session_id;
+                localStorage.setItem('session_id', sessionId);
+                status.textContent = `${data.caracteres.toLocaleString()} chars${data.paginas ? ` · ${data.paginas} pgs` : ''}`;
+                document.getElementById('archivoActivo').textContent = data.archivo;
+                agregarMensajeBot(`archivo cargado: ${sanitizarHTML(data.archivo)}`);
+
+            } catch (err) {
+                status.textContent = `err: ${err.message}`;
             }
         }
         // <!-- END: UPLOAD -->
 
         // <!-- SECTION: RESET -->
         async function resetChat() {
-            await fetch('/reset', { method: 'POST' });
-            document.getElementById('messages').innerHTML = `
-                <div class="msg-row bot">
-                    <div class="msg-label">system · ${horaActual()}</div>
-                    <div class="message bot">sesión reseteada. volviendo al documento por defecto.</div>
-                </div>`;
+            await fetch('/reset', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mensaje: '', session_id: sessionId })
+            });
+            document.getElementById('messages').innerHTML = '';
             document.getElementById('archivoActivo').textContent = 'default.doc';
             document.getElementById('uploadStatus').textContent = '';
+            agregarMensajeBot('sesión reseteada. volviendo al documento por defecto.');
         }
         // <!-- END: RESET -->
 
@@ -471,13 +454,10 @@
             const mensajes = document.querySelectorAll('.message:not(.loading)');
             let texto = `chat export · ${new Date().toLocaleString('es-AR')}\n`;
             texto += '='.repeat(50) + '\n\n';
-
             mensajes.forEach(msg => {
-                const esBot = msg.classList.contains('bot');
-                const label = esBot ? 'ASSISTANT' : 'USER';
+                const label = msg.classList.contains('bot') ? 'MIKE' : 'USER';
                 texto += `[${label}]\n${msg.innerText.trim()}\n\n`;
             });
-
             const blob = new Blob([texto], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -493,7 +473,7 @@
             const messages = document.getElementById('messages');
             messages.innerHTML += `
                 <div class="msg-row bot">
-                    <div class="msg-label">assistant · ${horaActual()}</div>
+                    <div class="msg-label">mike · ${horaActual()}</div>
                     <div class="message bot">${texto}</div>
                 </div>`;
             messages.scrollTop = messages.scrollHeight;
@@ -511,7 +491,7 @@
             messages.innerHTML += `
                 <div class="msg-row user">
                     <div class="msg-label">you · ${horaActual()}</div>
-                    <div class="message user">${texto}</div>
+                    <div class="message user">${sanitizarHTML(texto)}</div>
                 </div>`;
 
             input.value = '';
@@ -519,7 +499,7 @@
 
             messages.innerHTML += `
                 <div class="msg-row bot" id="loading-row">
-                    <div class="msg-label">assistant · ${horaActual()}</div>
+                    <div class="msg-label">mike · ${horaActual()}</div>
                     <div class="message loading">
                         <div class="typing"><span></span><span></span><span></span></div>
                     </div>
@@ -531,16 +511,22 @@
                 const res = await fetch('/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ mensaje: texto, modelo: modelo })
+                    body: JSON.stringify({ mensaje: texto, modelo: modelo, session_id: sessionId })
                 });
 
                 const data = await res.json();
-                document.getElementById('loading-row').remove();
-                agregarMensajeBot(data.respuesta);
 
-            } catch {
+                if (!res.ok) throw new Error(data.detail || 'Error del servidor');
+
+                sessionId = data.session_id;
+                localStorage.setItem('session_id', sessionId);
+
                 document.getElementById('loading-row').remove();
-                agregarMensajeBot('ERROR --> no se pudo conectar con el servidor.');
+                agregarMensajeBot(sanitizarHTML(data.respuesta));
+
+            } catch (err) {
+                document.getElementById('loading-row').remove();
+                agregarMensajeBot(`err: ${err.message}`);
             }
 
             btn.disabled = false;
