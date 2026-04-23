@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>joaquin@portfolio:~$ chatbot</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        /* <!-- SECTION: VARIABLES --> */
+        :root {
+            --bg: #080b10;
+            --surface: #0d1117;
+            --border: #1e2a3a;
+            --blue: #3b82f6;
+            --blue-dim: #1d3a6e;
+            --blue-glow: rgba(59,130,246,0.15);
+            --text: #cdd9e5;
+            --text-dim: #4a5568;
+            --text-muted: #2d3748;
+            --mono: 'JetBrains Mono', monospace;
+            --sans: 'Inter', sans-serif;
+        }
+        /* <!-- END: VARIABLES --> */
+
+        /* <!-- SECTION: RESET --> */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--sans);
+            background: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: 
+                radial-gradient(ellipse at 20% 50%, rgba(59,130,246,0.04) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 20%, rgba(59,130,246,0.03) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        /* <!-- END: RESET --> */
+
+        /* <!-- SECTION: LAYOUT --> */
+        .terminal {
+            width: 100%;
+            max-width: 780px;
+            height: 92vh;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            background: var(--surface);
+        }
+        /* <!-- END: LAYOUT --> */
+
+        /* <!-- SECTION: HEADER --> */
+        .header {
+            padding: 12px 20px;
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .dots {
+            display: flex;
+            gap: 6px;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--border);
+        }
+
+        .prompt {
+            font-family: var(--mono);
+            font-size: 0.8rem;
+            color: var(--text-dim);
+        }
+
+        .prompt span {
+            color: var(--blue);
+        }
+
+        .status {
+            font-family: var(--mono);
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--blue);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        /* <!-- END: HEADER --> */
+
+        /* <!-- SECTION: TOOLBAR --> */
+        .toolbar {
+            padding: 8px 20px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+
+        .upload-label {
+            font-family: var(--mono);
+            font-size: 0.75rem;
+            color: var(--blue);
+            cursor: pointer;
+            padding: 5px 10px;
+            border: 1px solid var(--blue-dim);
+            border-radius: 4px;
+            transition: all 0.2s;
+            background: var(--blue-glow);
+        }
+
+        .upload-label:hover {
+            background: rgba(59,130,246,0.25);
+            border-color: var(--blue);
+        }
+
+        input[type="file"] { display: none; }
+
+        .select-model {
+            font-family: var(--mono);
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 5px 8px;
+            outline: none;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .select-model:hover, .select-model:focus {
+            border-color: var(--blue);
+            color: var(--text);
+        }
+
+        .select-model option { background: var(--bg); }
+
+        .upload-status {
+            font-family: var(--mono);
+            font-size: 0.72rem;
+            color: var(--text-dim);
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .btn-toolbar {
+            font-family: var(--mono);
+            font-size: 0.72rem;
+            color: var(--text-dim);
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 5px 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-toolbar:hover {
+            color: var(--text);
+            border-color: var(--text-dim);
+        }
+        /* <!-- END: TOOLBAR --> */
+
+        /* <!-- SECTION: MESSAGES --> */
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border) transparent;
+        }
+
+        .messages::-webkit-scrollbar { width: 4px; }
+        .messages::-webkit-scrollbar-track { background: transparent; }
+        .messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+        .msg-row {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .msg-row.user { align-items: flex-end; }
+        .msg-row.bot { align-items: flex-start; }
+
+        .msg-label {
+            font-family: var(--mono);
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            padding: 0 4px;
+        }
+
+        .msg-row.user .msg-label { color: var(--blue-dim); }
+
+        .message {
+            max-width: 78%;
+            padding: 12px 16px;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            line-height: 1.6;
+        }
+
+        .message.user {
+            background: var(--blue-dim);
+            color: #93c5fd;
+            border: 1px solid rgba(59,130,246,0.3);
+            font-family: var(--sans);
+        }
+
+        .message.bot {
+            background: var(--bg);
+            color: var(--text);
+            border: 1px solid var(--border);
+            font-family: var(--mono);
+            font-size: 0.82rem;
+            position: relative;
+        }
+
+        .message.bot::before {
+            content: '>';
+            position: absolute;
+            left: -16px;
+            color: var(--blue);
+            font-family: var(--mono);
+            font-size: 0.8rem;
+        }
+
+        .message.loading {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            font-family: var(--mono);
+        }
+
+        .typing {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            height: 18px;
+        }
+
+        .typing span {
+            width: 5px;
+            height: 5px;
+            background: var(--blue);
+            border-radius: 50%;
+            animation: blink 1.2s infinite;
+        }
+
+        .typing span:nth-child(2) { animation-delay: 0.2s; }
+        .typing span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes blink {
+            0%, 100% { opacity: 0.2; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.3); }
+        }
+
+        .timestamp {
+            font-family: var(--mono);
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            padding: 0 4px;
+        }
+        /* <!-- END: MESSAGES --> */
+
+        /* <!-- SECTION: INPUT --> */
+        .input-area {
+            padding: 14px 20px;
+            background: var(--bg);
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .input-prefix {
+            font-family: var(--mono);
+            font-size: 0.9rem;
+            color: var(--blue);
+            flex-shrink: 0;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            font-family: var(--mono);
+            font-size: 0.85rem;
+            color: var(--text);
+            background: transparent;
+            border: none;
+            outline: none;
+            caret-color: var(--blue);
+        }
+
+        input[type="text"]::placeholder {
+            color: var(--text-muted);
+        }
+
+        .btn-send {
+            font-family: var(--mono);
+            font-size: 0.78rem;
+            color: var(--bg);
+            background: var(--blue);
+            border: none;
+            border-radius: 4px;
+            padding: 8px 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .btn-send:hover { background: #2563eb; }
+        .btn-send:disabled { background: var(--border); color: var(--text-muted); cursor: not-allowed; }
+        /* <!-- END: INPUT --> */
+    </style>
+</head>
+<body>
+    <div class="terminal">
+
+        <!-- HEADER -->
+        <div class="header">
+            <div class="header-left">
+                <div class="dots">
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+                <div class="prompt">
+                    <span>joaquin</span>@portfolio:~$ chatbot
+                </div>
+            </div>
+            <div class="status">
+                <div class="status-dot"></div>
+                <span id="archivoActivo">default.doc</span>
+            </div>
+        </div>
+
+        <!-- TOOLBAR -->
+        <div class="toolbar">
+            <label class="upload-label" for="fileInput">+ upload</label>
+            <input type="file" id="fileInput" accept=".pdf,.txt" onchange="subirArchivo(this)"/>
+
+            <select class="select-model" id="modelSelect">
+                <option value="llama-3.3-70b-versatile">llama-3.3-70b</option>
+                <option value="llama-3.1-8b-instant">llama-3.1-8b (rápido)</option>
+                <option value="deepseek-r1-distill-llama-70b">deepseek-r1-70b</option>
+            </select>
+
+            <span class="upload-status" id="uploadStatus"></span>
+
+            <button class="btn-toolbar" onclick="exportarChat()">export</button>
+            <button class="btn-toolbar" onclick="resetChat()">reset</button>
+        </div>
+
+        <!-- MESSAGES -->
+        <div class="messages" id="messages">
+            <div class="msg-row bot">
+                <div class="msg-label">system · <span id="tsInicial"></span></div>
+                <div class="message bot">
+                    Iniciando chatbot... listo.<br>
+                    Subí un PDF o TXT para comenzar, o preguntame sobre el perfil por defecto.
+                </div>
+            </div>
+        </div>
+
+        <!-- INPUT -->
+        <div class="input-area">
+            <span class="input-prefix">$</span>
+            <input type="text" id="input" placeholder="escribí tu consulta..." onkeypress="handleKey(event)"/>
+            <button class="btn-send" id="btn" onclick="enviarMensaje()">enviar</button>
+        </div>
+
+    </div>
+
+    <script>
+        // <!-- SECTION: INIT -->
+        document.getElementById('tsInicial').textContent = horaActual();
+
+        function horaActual() {
+            return new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+        }
+        // <!-- END: INIT -->
+
+        // <!-- SECTION: UPLOAD -->
+        async function subirArchivo(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const status = document.getElementById('uploadStatus');
+            status.textContent = 'uploading...';
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const res = await fetch('/upload', { method: 'POST', body: formData });
+                const data = await res.json();
+
+                if (data.error) {
+                    status.textContent = `err: ${data.error}`;
+                } else {
+                    status.textContent = `${data.caracteres.toLocaleString()} chars · ${data.paginas ?? '–'} pgs`;
+                    document.getElementById('archivoActivo').textContent = data.archivo;
+                    agregarMensajeBot(`archivo cargado: ${data.archivo}`);
+                }
+            } catch {
+                status.textContent = 'err: conexión fallida';
+            }
+        }
+        // <!-- END: UPLOAD -->
+
+        // <!-- SECTION: RESET -->
+        async function resetChat() {
+            await fetch('/reset', { method: 'POST' });
+            document.getElementById('messages').innerHTML = `
+                <div class="msg-row bot">
+                    <div class="msg-label">system · ${horaActual()}</div>
+                    <div class="message bot">sesión reseteada. volviendo al documento por defecto.</div>
+                </div>`;
+            document.getElementById('archivoActivo').textContent = 'default.doc';
+            document.getElementById('uploadStatus').textContent = '';
+        }
+        // <!-- END: RESET -->
+
+        // <!-- SECTION: EXPORT -->
+        function exportarChat() {
+            const mensajes = document.querySelectorAll('.message:not(.loading)');
+            let texto = `chat export · ${new Date().toLocaleString('es-AR')}\n`;
+            texto += '='.repeat(50) + '\n\n';
+
+            mensajes.forEach(msg => {
+                const esBot = msg.classList.contains('bot');
+                const label = esBot ? 'ASSISTANT' : 'USER';
+                texto += `[${label}]\n${msg.innerText.trim()}\n\n`;
+            });
+
+            const blob = new Blob([texto], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `chat-${Date.now()}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        // <!-- END: EXPORT -->
+
+        // <!-- SECTION: CHAT -->
+        function agregarMensajeBot(texto) {
+            const messages = document.getElementById('messages');
+            messages.innerHTML += `
+                <div class="msg-row bot">
+                    <div class="msg-label">assistant · ${horaActual()}</div>
+                    <div class="message bot">${texto}</div>
+                </div>`;
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        async function enviarMensaje() {
+            const input = document.getElementById('input');
+            const btn = document.getElementById('btn');
+            const messages = document.getElementById('messages');
+            const modelo = document.getElementById('modelSelect').value;
+
+            const texto = input.value.trim();
+            if (!texto) return;
+
+            messages.innerHTML += `
+                <div class="msg-row user">
+                    <div class="msg-label">you · ${horaActual()}</div>
+                    <div class="message user">${texto}</div>
+                </div>`;
+
+            input.value = '';
+            btn.disabled = true;
+
+            messages.innerHTML += `
+                <div class="msg-row bot" id="loading-row">
+                    <div class="msg-label">assistant · ${horaActual()}</div>
+                    <div class="message loading">
+                        <div class="typing"><span></span><span></span><span></span></div>
+                    </div>
+                </div>`;
+
+            messages.scrollTop = messages.scrollHeight;
+
+            try {
+                const res = await fetch('/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mensaje: texto, modelo: modelo })
+                });
+
+                const data = await res.json();
+                document.getElementById('loading-row').remove();
+                agregarMensajeBot(data.respuesta);
+
+            } catch {
+                document.getElementById('loading-row').remove();
+                agregarMensajeBot('ERROR --> no se pudo conectar con el servidor.');
+            }
+
+            btn.disabled = false;
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function handleKey(e) {
+            if (e.key === 'Enter') enviarMensaje();
+        }
+        // <!-- END: CHAT -->
+    </script>
+</body>
+</html>
