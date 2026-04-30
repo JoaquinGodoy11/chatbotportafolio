@@ -1,6 +1,6 @@
 # Mike — AI Chatbot con RAG
 
- **Demo en vivo:** [chatbotportafoliojoa-production.up.railway.app](https://chatbotportafolio-production.up.railway.app)
+ **Demo en vivo:** [chatbotportafoliojoa-production.up.railway.app] https://chatbotportafoliojoa-production.up.railway.app/
 
 ---
 
