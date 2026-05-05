@@ -82,17 +82,16 @@
         }
 
         .btn-toolbar, .upload-label, .select-model {
-            background: transparent;
+            background: rgba(128, 203, 196, 0.08); 
             color: var(--cyan);
             border: 1px solid var(--border);
-            padding: 4px 8px;
-            border-radius: 4px;
+            padding: 6px 12px; 
+            border-radius: 6px;
             cursor: pointer;
             font-family: inherit;
             font-size: inherit;
-            transition: all 0.2s;
+            transition: all 0.2s; 
         }
-
         .btn-toolbar:hover, .upload-label:hover {
             border-color: var(--cyan);
             background: rgba(128, 203, 196, 0.1);
@@ -183,14 +182,15 @@
         </div>
 
         <div class="toolbar">
-            <label class="upload-label" for="fileInput">$ add_doc</label>
+            
+            <label class="upload-label" for="fileInput"> Subir Doc</label>
             <input type="file" id="fileInput" accept=".pdf,.txt" onchange="subirArchivo(this)"/>
             <select class="select-model" id="modelSelect">
-                <option value="llama-3.1-8b-instant">--model=llama-8b-fast</option>
-                <option value="llama-3.3-70b-versatile">--model=llama-70b-pro</option>
+            <option value="llama-3.1-8b-instant">Modelo: Llama 8B (Rápido)</option>
+            <option value="llama-3.3-70b-versatile">Modelo: Llama 70B (Pro)</option>
             </select>
-            <button class="btn-toolbar" onclick="exportarChat()">$ export_log</button>
-            <button class="btn-toolbar" onclick="resetChat()">$ clear_session</button>
+            <button class="btn-toolbar" onclick="exportarChat()"> Exportar</button>
+            <button class="btn-toolbar" onclick="resetChat()"> Limpiar</button>
             <span class="upload-status" id="uploadStatus">[context: default.doc]</span>
         </div>
 
@@ -272,7 +272,7 @@
             const messages = document.getElementById('messages');
             messages.innerHTML += `
                 <div class="msg-line">
-                    <span class="prompt-prefix bot">mike@ai-agent</span><span class="prompt-path">:/bin</span><span class="prompt-symbol">#</span>
+                    <span class="prompt-prefix bot">mike@ai-agent</span><span class="prompt-symbol">:~$</span>
                     <div class="msg-content bot-text">${texto.replace(/\n/g, '<br>')}</div>
                 </div>`;
             messages.scrollTop = messages.scrollHeight;

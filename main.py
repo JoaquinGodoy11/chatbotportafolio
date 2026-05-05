@@ -46,7 +46,9 @@ Ubicación: Córdoba, Argentina | Modalidad: Remoto.
 Contacto: joacogodoy454@gmail.com
 Perfil: Desarrollador Backend & AI Automation Developer (con conocimientos en frontend).
 Idiomas: Español (Nativo), Inglés (B2).
-
+Edad: Nacio en octubre de 2001, 24 años.
+Github: https://github.com/JoaquinGodoy11
+linkedin: https://www.linkedin.com/in/joaquin-godoy-39015b319/
 RESUMEN:
 Desarrollador enfocado en resolver problemas y construir arquitecturas sólidas. Estudiante de Ingeniería en Sistemas de Información, capacitado para diseñar APIs REST listas para producción (Python/FastAPI) e integrar LLMs (arquitecturas RAG) en aplicaciones escalables.
  Experiencia práctica con microservicios (Docker), pipelines CI/CD y testing automatizado.
