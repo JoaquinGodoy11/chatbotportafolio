@@ -1,52 +1,36 @@
-# Mike — AI Chatbot con RAG
+# Mike — AI Agent with RAG Architecture (FastAPI + Groq)
 
- **Demo en vivo:** [chatbotportafoliojoa-production.up.railway.app] https://chatbotportafoliojoa-production.up.railway.app/
+**Live Demo:** [https://chatbotportafolio-production.up.railway.app](https://chatbotportafolio-production.up.railway.app)
 
----
+This microservice demonstrates the implementation of a Virtual Assistant powered by Large Language Models (LLMs). The core of the project is a lightweight RAG architecture, designed to query documents (PDF/TXT), mitigating AI hallucinations and optimizing token consumption.
 
-Construí este proyecto para demostrar cómo integrar un LLM con documentos propios de forma segura y deployarlo en producción. La idea es simple: subís cualquier PDF o TXT y el chatbot responde preguntas sobre ese documento. Sin inventar, sin salirse del contexto.
+## 🛠 Tech Stack and Key Concepts
 
-## ¿Qué tiene adentro?
+- **Backend:** Python, FastAPI (asynchronous).
+- **AI & Inference:** Groq API. We can choose between two models using a dropdown menu (Llama 3.1 8B / 3.3 70B).
+- **RAG Engine:** Dynamic chunking and lexical vectorization (TF-IDF via `scikit-learn`) for high-speed retrieval in memory-constrained environments.
+- **Security & Resilience:** IP-based Rate Limiting (`slowapi`), origin control (strict CORS), and safe HTTP exception handling.
 
-El backend corre en FastAPI y se comunica con la API de Groq para inferencia. Implementé RAG básico manteniendo el documento cargado en el contexto del modelo junto con el historial de conversación. Cada usuario tiene su propia sesión.
+## 📐 Architecture Decisions and Trade-offs (Demo vs. Production)
 
-En el lado de seguridad, hicimos unas configuraciones iniciales como: rate limiting por IP, CORS configurado para el dominio de producción, sanitización de inputs en backend y frontend para prevenir XSS, y validación de modelos contra una whitelist.
+To keep this project agile and suitable for a portfolio demonstration on a free tier (Railway), the following design decisions were made:
 
-## Stack
+1. **TF-IDF Based RAG vs. Dense Embeddings:** I opted to implement linear algebra (TF-IDF and cosine similarity) for context retrieval, since it consumes less RAM.
+2. **Non-blocking Event Loop:** The processing and text extraction of PDFs (CPU-bound) was delegated to a secondary *Threadpool* using `asyncio.to_thread()`.
+3. **State Management:** The conversational history and vectors are kept in the container's RAM (`dict`). In a real-world production microservices architecture, this state would be externalized to **Redis** or a vector database (like pgvector or ChromaDB) to allow for horizontal scaling.
 
-- **Backend:** Python, FastAPI, Groq API (LLaMA 3.3 70B)
-- **Frontend:** HTML, CSS, JavaScript vanilla
-- **Deploy:** Railway
-- **Librerías:** pdfplumber, slowapi, python-dotenv
-
-## Instalación local
+## 🚀 Local Installation and Execution
 
 ```bash
-git clone https://github.com/JoaquinGodoy11/chatbotportafolio
+git clone [https://github.com/JoaquinGodoy11/chatbotportafolio](https://github.com/JoaquinGodoy11/chatbotportafolio)
 cd chatbotportafolio
 python -m venv venv
+
+# Windows
 venv\Scripts\activate
+
+
+# Linux/Mac
+source venv/bin/activate
+
 pip install -r requirements.txt
-```
-
-Creá un archivo `.env`:
-GROQ_API_KEY=tu_api_key_aqui
-Corré el servidor:
-```bash
-uvicorn main:app --reload
-```
-
-Abrí `http://localhost:8000`
-
-## Features
-
-- Subida de archivos PDF y TXT (máx 5MB)
-- Selección de modelo (LLaMA 70B o 8B)
-- Memoria de conversación por sesión
-- Protección contra prompt injection
-- Export del chat a TXT
-- Reset de sesión
-
----
-
-Hecho por [Joaquín Godoy](https://github.com/JoaquinGodoy11)
