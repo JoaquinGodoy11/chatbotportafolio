@@ -7,7 +7,6 @@
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* Paleta One Dark / Dracula combinada */
             --bg: #0f111a;
             --surface: #1e212b;
             --border: #2b2f3e;
@@ -49,7 +48,6 @@
             backdrop-filter: blur(10px);
         }
 
-        /* HEADER ESTILO MACOS */
         .header {
             padding: 12px 16px;
             background: #1a1c23;
@@ -65,13 +63,8 @@
         .dot.yellow { background: #ffbd2e; }
         .dot.green { background: #27c93f; }
 
-        .title {
-            font-size: 0.8rem;
-            color: var(--text-dim);
-            letter-spacing: 0.5px;
-        }
+        .title { font-size: 0.8rem; color: var(--text-dim); letter-spacing: 0.5px; }
 
-        /* TOOLBAR MINIMALISTA */
         .toolbar {
             padding: 8px 16px;
             background: transparent;
@@ -79,6 +72,7 @@
             display: flex;
             gap: 12px;
             font-size: 0.75rem;
+            flex-wrap: wrap;
         }
 
         .btn-toolbar, .upload-label, .select-model {
@@ -99,9 +93,9 @@
         
         input[type="file"] { display: none; }
         .select-model option { background: var(--surface); color: var(--text); }
-        .upload-status { color: var(--text-dim); flex: 1; text-align: right; }
+        .upload-status { color: var(--text-dim); flex: 1; text-align: right; min-width: fit-content; align-self: center; }
 
-        /* MENSAJES ESTILO CLI */
+        
         .messages {
             flex: 1;
             overflow-y: auto;
@@ -113,27 +107,29 @@
             line-height: 1.5;
         }
 
-        .messages::-webkit-scrollbar { width: 6px; }
-        .messages::-webkit-scrollbar-thumb { background: var(--border); }
+        .messages::-webkit-scrollbar { width: 4px; }
+        .messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
 
+    
         .msg-line { display: flex; align-items: flex-start; gap: 10px; word-break: break-word; }
-        
-        .prompt-prefix { white-space: nowrap; }
+        .prompt-prefix { white-space: nowrap; flex-shrink: 0; }
         .prompt-prefix.user { color: var(--green); }
         .prompt-prefix.bot { color: var(--yellow); }
-        .prompt-path { color: var(--cyan); }
-        .prompt-symbol { color: var(--text-dim); margin-right: 8px; }
+        .prompt-symbol { color: var(--text-dim); margin-right: 4px; }
 
-        .msg-content { color: var(--text); white-space: pre-wrap; }
+        .msg-content { color: var(--text); white-space: pre-wrap; flex: 1; }
         .msg-content.bot-text { color: #e4e4e4; }
 
-        /* INPUT AREA */
+
         .input-area {
             padding: 16px 20px;
             display: flex;
             align-items: center;
             border-top: 1px solid var(--border);
+            gap: 10px;
         }
+
+        .input-wrapper { flex: 1; display: flex; align-items: center; }
 
         input[type="text"] {
             flex: 1;
@@ -147,59 +143,51 @@
         }
         
         input[type="text"]::placeholder { color: var(--border); }
-        
-        /* Cursor titilante simulado */
-        .cursor-blink {
-            display: inline-block;
-            width: 8px;
-            height: 15px;
-            background: var(--cyan);
-            animation: blink 1s step-end infinite;
-            vertical-align: text-bottom;
-            margin-left: 2px;
+
+        .send-icon {
+            background: none; border: none; color: var(--cyan);
+            font-size: 1.1rem; cursor: pointer; opacity: 0.6;
+            transition: opacity 0.2s, transform 0.2s; padding: 0 5px;
         }
+        .send-icon:hover { opacity: 1; transform: scale(1.1); }
 
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-
-        .typing { display: flex; gap: 4px; align-items: center; height: 20px;}
-        .typing span { width: 4px; height: 4px; background: var(--yellow); border-radius: 50%; animation: pulse 1s infinite;}
-        .typing span:nth-child(2) { animation-delay: 0.2s; }
-        .typing span:nth-child(3) { animation-delay: 0.4s; }
-        @keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
-
+        @media (max-width: 600px) {
+            .terminal { height: 90vh; border-radius: 0; }
+            .prompt-prefix.user { display: none; }
+            .upload-status { text-align: left; font-size: 0.65rem; margin-top: 2px; }
+        }
     </style>
 </head>
 <body>
     <div class="terminal">
         <div class="header">
-            <div class="dots">
-                <div class="dot red"></div>
-                <div class="dot yellow"></div>
-                <div class="dot green"></div>
-            </div>
+            <div class="dots"><div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div></div>
             <div class="title">mike-agent — bash — 80x24</div>
-            <div style="width: 44px;"></div> <!-- Spacer para centrar título -->
+            <div style="width: 44px;"></div>
         </div>
 
         <div class="toolbar">
-            
-            <label class="upload-label" for="fileInput"> Subir Doc</label>
+            <label class="upload-label" for="fileInput">Upload Doc</label>
             <input type="file" id="fileInput" accept=".pdf,.txt" onchange="subirArchivo(this)"/>
-            <select class="select-model" id="modelSelect">
-            <option value="llama-3.1-8b-instant">Modelo: Llama 8B (Rápido)</option>
-            <option value="llama-3.3-70b-versatile">Modelo: Llama 70B (Pro)</option>
-            </select>
-            <button class="btn-toolbar" onclick="exportarChat()"> Exportar</button>
-            <button class="btn-toolbar" onclick="resetChat()"> Limpiar</button>
+            <div style="display: flex; align-items: center; gap: 5px;">
+        <span style="color: var(--text-dim); font-size: 0.7rem;">Model:</span>
+        <select class="select-model" id="modelSelect">
+            <option value="llama-3.1-8b-instant">Llama 8B (Fast)</option>
+            <option value="llama-3.3-70b-versatile">Llama 70B (Pro)</option>
+        </select>
+    </div>
+            <button class="btn-toolbar" onclick="resetChat()">Clear</button>
             <span class="upload-status" id="uploadStatus">[context: default.doc]</span>
         </div>
 
         <div class="messages" id="messages"></div>
 
         <div class="input-area">
-            <span class="prompt-prefix user">guest@portfolio</span><span class="prompt-path">:~</span><span class="prompt-symbol">$</span>
-            <input type="text" id="input" placeholder="Escribí un comando o pregunta..." onkeypress="handleKey(event)" autocomplete="off" autofocus/>
-            <span class="cursor-blink"></span>
+            <span class="prompt-prefix user">guest@portfolio</span><span class="prompt-symbol">$</span>
+            <div class="input-wrapper">
+                <input type="text" id="input" placeholder="Enter a command or question..." onkeypress="handleKey(event)" autocomplete="off" autofocus/>
+                <button class="send-icon" onclick="enviarMensaje()">➜</button>
+            </div>
         </div>
     </div>
 
@@ -207,7 +195,7 @@
         let sessionId = localStorage.getItem('session_id') || '';
 
         window.onload = () => {
-            agregarMensajeBot("Sistema RAG inicializado.\nSoy Mike, el agente virtual de Joaquín Godoy.\n\nEscribí tu consulta sobre su experiencia, stack tecnológico o subí un documento nuevo para analizar.");
+            agregarMensajeBot("Hola! Mi nombre es Mike, soy el agente virtual de Joaquín Godoy.\n\nPuedes hacerme preguntas sobre su experiencia, stack tecnológico o subir un documento nuevo para que lo analice. Estoy configurado con un Sistema RAG, por lo que solo podré responderte sobre Joaquín (o sobre el documento que me subas).\n\nSi quieres que olvide todo lo que sé, simplemente haz click en el botón 'Clear'.\n\n¿Qué te trae por aquí hoy?");
         };
 
         function sanitizarHTML(texto) {
@@ -219,23 +207,19 @@
         async function subirArchivo(input) {
             const file = input.files[0];
             if (!file) return;
-
             const status = document.getElementById('uploadStatus');
             status.textContent = '[processing...]';
-
             const formData = new FormData();
             formData.append('file', file);
             if (sessionId) formData.append('session_id', sessionId);
-
             try {
                 const res = await fetch('/upload', { method: 'POST', body: formData });
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.detail);
-
                 sessionId = data.session_id;
                 localStorage.setItem('session_id', sessionId);
                 status.textContent = `[context: ${data.archivo}]`;
-                agregarMensajeBot(`>> Documento indexado exitosamente: ${data.archivo}`);
+                agregarMensajeBot(`>> Document indexated successfully: ${data.archivo}`);
             } catch (err) {
                 status.textContent = '[error]';
                 agregarMensajeBot(`>> Error: ${err.message}`);
@@ -250,19 +234,14 @@
             });
             document.getElementById('messages').innerHTML = '';
             document.getElementById('uploadStatus').textContent = '[context: default.doc]';
-            agregarMensajeBot(">> Memoria borrada. Restaurando contexto por defecto.");
-        }
-
-        function exportarChat() {
-            // Lógica de exportación sin cambios
-            alert("Exportando log..."); 
+            agregarMensajeBot(">> Memory cleared. Restoring default context.");
         }
 
         function agregarMensajeUsuario(texto) {
             const messages = document.getElementById('messages');
             messages.innerHTML += `
                 <div class="msg-line">
-                    <span class="prompt-prefix user">guest@portfolio</span><span class="prompt-path">:~</span><span class="prompt-symbol">$</span>
+                    <span class="prompt-prefix user">guest@portfolio</span><span class="prompt-symbol">$</span>
                     <div class="msg-content">${sanitizarHTML(texto)}</div>
                 </div>`;
             messages.scrollTop = messages.scrollHeight;
@@ -272,7 +251,7 @@
             const messages = document.getElementById('messages');
             messages.innerHTML += `
                 <div class="msg-line">
-                    <span class="prompt-prefix bot">mike@ai-agent</span><span class="prompt-symbol">:~$</span>
+                    <span class="prompt-prefix bot">mike@agent</span><span class="prompt-symbol">:~$</span>
                     <div class="msg-content bot-text">${texto.replace(/\n/g, '<br>')}</div>
                 </div>`;
             messages.scrollTop = messages.scrollHeight;
@@ -291,8 +270,8 @@
             const loadingId = 'load-' + Date.now();
             messages.innerHTML += `
                 <div class="msg-line" id="${loadingId}">
-                    <span class="prompt-prefix bot">mike@ai-agent</span><span class="prompt-path">:/bin</span><span class="prompt-symbol">#</span>
-                    <div class="typing"><span></span><span></span><span></span></div>
+                    <span class="prompt-prefix bot">mike@agent</span><span class="prompt-symbol">#</span>
+                    <div class="msg-content">...</div>
                 </div>`;
             messages.scrollTop = messages.scrollHeight;
 
@@ -302,24 +281,19 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ mensaje: texto, modelo: modelo, session_id: sessionId })
                 });
-
                 const data = await res.json();
                 document.getElementById(loadingId).remove();
-
                 if (!res.ok) throw new Error(data.detail);
-
                 sessionId = data.session_id;
                 localStorage.setItem('session_id', sessionId);
                 agregarMensajeBot(sanitizarHTML(data.respuesta));
             } catch (err) {
-                document.getElementById(loadingId).remove();
+                if(document.getElementById(loadingId)) document.getElementById(loadingId).remove();
                 agregarMensajeBot(`>> Fatal Error: ${err.message}`);
             }
         }
 
-        function handleKey(e) {
-            if (e.key === 'Enter') enviarMensaje();
-        }
+        function handleKey(e) { if (e.key === 'Enter') enviarMensaje(); }
     </script>
 </body>
 </html>

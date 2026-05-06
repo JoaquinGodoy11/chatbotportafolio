@@ -47,7 +47,7 @@ Contacto: joacogodoy454@gmail.com
 Perfil: Desarrollador Backend & AI Automation Developer (con conocimientos en frontend).
 Idiomas: Español (Nativo), Inglés (B2).
 Edad: Nacio en octubre de 2001, 24 años.
-Github: https://github.com/JoaquinGodoy11
+Github o portafolio o sitio web o proyectos: https://github.com/JoaquinGodoy11
 linkedin: https://www.linkedin.com/in/joaquin-godoy-39015b319/
 RESUMEN:
 Desarrollador enfocado en resolver problemas y construir arquitecturas sólidas. Estudiante de Ingeniería en Sistemas de Información, capacitado para diseñar APIs REST listas para producción (Python/FastAPI) e integrar LLMs (arquitecturas RAG) en aplicaciones escalables.
@@ -145,7 +145,7 @@ def extraer_texto_pdf(contenido: bytes) -> tuple[str, int]:
 # --- Modelos Pydantic ---
 class Pregunta(BaseModel):
     mensaje: str
-    modelo: str = "llama-3.1-8b-instant" # Por defecto un modelo más rápido
+    modelo: str = "llama-3.1-8b-instant" 
     session_id: str = ""
 
 # --- Endpoints ---
@@ -157,7 +157,7 @@ def home():
 @app.post("/upload")
 @limiter.limit("10/hour")
 async def upload(request: Request, file: UploadFile = File(...), session_id: str = ""):
-    MAX_SIZE = 5 * 1024 * 1024  # 5MB límite duro
+    MAX_SIZE = 5 * 1024 * 1024  # 5MB límite razonable para procesamiento en memoria
     contenido = await file.read()
 
     if len(contenido) > MAX_SIZE:
@@ -213,7 +213,7 @@ async def chat(request: Request, pregunta: Pregunta):
     session_id = pregunta.session_id or str(uuid.uuid4())
     sesion = obtener_sesion(session_id)
 
-    # --- Motor de Recuperación (Retrieval) ---
+    # ---  Retrieval ---
     contexto_relevante = ""
     if sesion["tfidf_matrix"] is not None and sesion["chunks"]:
         query_vec = sesion["vectorizer"].transform([mensaje])
@@ -243,11 +243,11 @@ async def chat(request: Request, pregunta: Pregunta):
         respuesta = client.chat.completions.create(
             model=pregunta.modelo,
             messages=mensajes_llm,
-            temperature=0.1 # Temperatura baja para grounding en RAG
+            temperature=0.4 
         )
         contenido = respuesta.choices[0].message.content or "Sin respuesta"
     except Exception as e:
-        sesion["historial"].pop() # Rollback si falla Groq
+        sesion["historial"].pop() # Rollback 
         raise HTTPException(status_code=502, detail="Error en upstream AI provider")
 
     sesion["historial"].append({"role": "assistant", "content": contenido})
@@ -259,7 +259,7 @@ async def reset(pregunta: Pregunta):
     session_id = pregunta.session_id or str(uuid.uuid4())
     if session_id in sesiones:
         del sesiones[session_id]
-    obtener_sesion(session_id) # Fuerza la recreación con defaults
+    obtener_sesion(session_id) 
     return {"status": "ok", "session_id": session_id}
 
 @app.get("/estado")
